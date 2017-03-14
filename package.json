@@ -1,0 +1,42 @@
+{
+  "name": "pre-proc-loader",
+  "version": "1.0.0",
+  "title": "pre-proc-loader",
+  "description": "preProc loader module for webpack - The super simple preprocessor for front-end development.",
+  "keywords": [
+    "webpack",
+    "loader",
+    "preprocessor",
+    "preprocess",
+    "front-end",
+    "javascript",
+    "css",
+    "html"
+  ],
+  "dependencies": {
+    "loader-utils": "^1.0.2"
+  },
+  "peerDependencies": {
+    "pre-proc": ">=0.2.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0",
+    "proxyquire": "^1.7.11",
+    "sinon": "^1.17.7"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "homepage": "https://github.com/anseki/pre-proc-loader",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/anseki/pre-proc-loader.git"
+  },
+  "bugs": "https://github.com/anseki/pre-proc-loader/issues",
+  "license": "MIT",
+  "author": {
+    "name": "anseki",
+    "url": "https://github.com/anseki"
+  }
+}
