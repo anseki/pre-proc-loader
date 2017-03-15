@@ -128,6 +128,6 @@ And the `options.replaceTag.replacement` also is accepted. (Not `options.replace
 If `pickTag` option is specified, call [`pickTag`](https://github.com/anseki/pre-proc#picktag) method with current content.
 
 You can specify arguments by the same way as the [`removeTag`](#removetag).  
-Following arguments are accepted:
+Following argument is accepted:
 
 - `tag`
