@@ -131,3 +131,12 @@ You can specify arguments by the same way as the [`removeTag`](#removetag).
 Following argument is accepted:
 
 - `tag`
+
+### `toCode`
+
+*Type:* boolean  
+*Default:* `false`
+
+When the content is not JavaScript code (e.g. HTML, CSS, JSON, etc.), a loader that is specified as a final loader has to convert the content to JavaScript code and output it to allow another code to import the content.  
+If `true` is specified for `toCode` option, the content is converted to JavaScript code.  
+If the loader is specified as not a final loader, this option is ignored (i.e. the content is not converted, and it is passed to next loader).
