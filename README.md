@@ -4,6 +4,9 @@
 
 [preProc](https://github.com/anseki/pre-proc) loader module for [webpack](https://webpack.js.org/).
 
+* [Grunt](http://gruntjs.com/) plugin: [grunt-pre-proc](https://github.com/anseki/grunt-pre-proc)
+* [gulp](http://gulpjs.com/) plugin: [gulp-pre-proc](https://github.com/anseki/gulp-pre-proc)
+
 The super simple preprocessor for front-end development.  
 See [preProc](https://github.com/anseki/pre-proc) for options and more information about preProc.
 
@@ -41,7 +44,8 @@ module.exports = {
         test: /\.js$/,
         use: [{
           loader: 'pre-proc-loader',
-          options: {removeTag: {tag: 'DEBUG'}}
+          // Remove `DEBUG` contents from all files in `dir1` directory and all JS files.
+          options: {removeTag: {tag: 'DEBUG', pathTest: ['/path/to/dir1', /\.js$/]}}
         }]
       },
       {
@@ -93,6 +97,8 @@ Following properties are accepted:
 
 Also, you can specify common values for the arguments into upper layer. That is, the `options.pathTest` is used when `options.removeTag.pathTest` is not specified.  
 And also, you can specify values for `tag` argument via a query string with the resource file like `?tag=TAG`, and it is the first-priority value. An array also can be specified, like `?tag[]=TAG1,tag[]=TAG2`, `?{tag:[TAG1,TAG2]}` or `?tag=TAG1%2CTAG2` (or `?tag=TAG1%20TAG2`, i.e. the values separated by space or comma).
+
+If the `pathTest` is specified, current source file path is tested with the `pathTest`.
 
 For example:
 
