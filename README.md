@@ -41,7 +41,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.js$/,
+        test: /\/develop\//,
         use: [{
           loader: 'pre-proc-loader',
           // Remove `DEBUG` contents from all files in `dir1` directory and all JS files.
