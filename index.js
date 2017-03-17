@@ -1,18 +1,14 @@
 'use strict';
 
 var preProc = require('pre-proc'),
-  loaderUtils = require('loader-utils'),
-  parseQuery = (function() { // loader-utils@1 doesn't export `parseQuery`.
-    var path = require('path');
-    return require(path.resolve(path.dirname(require.resolve('loader-utils')), 'parseQuery.js'));
-  })();
+  loaderUtils = require('loader-utils');
 
 module.exports = function(content) {
   var options = loaderUtils.getOptions(this) || {},
     resourceTag, pathTest;
 
   resourceTag = typeof this.resourceQuery === 'string' && this.resourceQuery &&
-      (resourceTag = parseQuery(this.resourceQuery)) && resourceTag.tag ?
+      (resourceTag = loaderUtils.parseQuery(this.resourceQuery)) && resourceTag.tag ?
     (resourceTag.tag + '').split(/[,\s]+/) : null;
 
   // pickTag
