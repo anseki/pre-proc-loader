@@ -1,6 +1,6 @@
 {
   "name": "pre-proc-loader",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "title": "pre-proc-loader",
   "description": "preProc loader module for webpack - The super simple preprocessor for front-end development.",
   "keywords": [
