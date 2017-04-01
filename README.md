@@ -43,18 +43,14 @@ module.exports = {
     rules: [
       {
         test: /\/develop\//,
-        use: {
-          loader: 'pre-proc-loader',
-          // Remove `DEBUG` contents from all files in `dir1` directory and all JS files.
-          options: {removeTag: {tag: 'DEBUG', pathTest: ['/path/to/dir1', /\.js$/]}}
-        }
+        loader: 'pre-proc-loader',
+        // Remove `DEBUG` contents from all files in `dir1` directory and all JS files.
+        options: {removeTag: {tag: 'DEBUG', pathTest: ['/path/to/dir1', /\.js$/]}}
       },
       {
         test: /\.html$/,
-        use: {
-          loader: 'pre-proc-loader',
-          options: {pickTag: {}} // `tag` is specified via query string
-        }
+        loader: 'pre-proc-loader',
+        options: {pickTag: {}} // `tag` is specified via query string
       }
     ]
   }
