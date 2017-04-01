@@ -18,7 +18,10 @@ npm install --save-dev pre-proc-loader pre-proc
 
 ## Usage
 
-[Documentation: Loaders](https://webpack.js.org/concepts/loaders/)
+Documentation:
+
+- [Loaders](https://webpack.js.org/concepts/loaders/)
+- [Using loaders](http://webpack.github.io/docs/using-loaders.html) (for webpack v1)
 
 For example:
 
@@ -28,8 +31,6 @@ TEST_MODE = true; // [DEBUG/]
 var buttonA = require('./buttons.html?tag=BUTTON-A');
 document.getElementById('panel').innerHTML = buttonA;
 ```
-
-**webpack v2**
 
 ```js
 // webpack.config.js
@@ -42,48 +43,27 @@ module.exports = {
     rules: [
       {
         test: /\/develop\//,
-        use: [{
+        use: {
           loader: 'pre-proc-loader',
           // Remove `DEBUG` contents from all files in `dir1` directory and all JS files.
           options: {removeTag: {tag: 'DEBUG', pathTest: ['/path/to/dir1', /\.js$/]}}
-        }]
+        }
       },
       {
         test: /\.html$/,
-        use: [{
+        use: {
           loader: 'pre-proc-loader',
           options: {pickTag: {}} // `tag` is specified via query string
-        }]
+        }
       }
     ]
   }
 };
 ```
 
-**webpack v1**
-
-```js
-// webpack.config.js
-module.exports = {
-  entry: './app.js',
-  output: {
-    filename: 'bundle.js'
-  },
-  module: {
-    loaders: [
-      {test: /\.js$/, loader: 'pre-proc-loader'},
-      {test: /\.html$/, loader: 'pre-proc-loader'}
-    ]
-  },
-  // pre-proc-loader options
-  preProcLoader: {
-    removeTag: {tag: 'DEBUG'},
-    pickTag: {}
-  }
-};
-```
-
 ## Options
+
+You can specify options via query parameters or an `options` (or `preProcLoader` for webpack v1) object in webpack configuration.
 
 ### `removeTag`
 
