@@ -13,6 +13,10 @@
     "css",
     "html"
   ],
+  "files": [
+    "index.js",
+    "LICENSE-MIT"
+  ],
   "dependencies": {
     "loader-utils": "^1.1.0"
   },
