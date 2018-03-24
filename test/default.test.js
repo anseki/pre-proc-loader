@@ -1,19 +1,20 @@
 'use strict';
 
+let pickTagRturnsNull;
 const proxyquire = require('proxyquire').noPreserveCache(),
   sinon = require('sinon'),
   preProc = {
-    replaceTag: sinon.spy(),
-    removeTag: sinon.spy(),
-    pickTag: sinon.spy()
+    replaceTag: sinon.spy((tag, replacement, content) => `${content}<replaceTag>`),
+    removeTag: sinon.spy((tag, content) => `${content}<removeTag>`),
+    pickTag: sinon.spy((tag, content) => (pickTagRturnsNull ? null : `${content}<pickTag>`))
   },
   loader = proxyquire('../', {'pre-proc': preProc}),
   expect = require('chai').expect;
 
 function resetAll() {
-  preProc.replaceTag.reset();
-  preProc.removeTag.reset();
-  preProc.pickTag.reset();
+  preProc.replaceTag.resetHistory();
+  preProc.removeTag.resetHistory();
+  preProc.pickTag.resetHistory();
 }
 
 describe('when option for each method is passed', () => {
@@ -37,7 +38,8 @@ describe('when option for each method is passed', () => {
 });
 
 describe('options.toCode', () => {
-  const CONVERTED = 'module.exports = "content";', NOT_CONVERTED = 'content';
+  const CONVERTED = 'module.exports = "content";',
+    NOT_CONVERTED = 'content';
 
   it('should not convert content when loaderIndex: 1 / toCode: false', () => {
     expect(loader.call({loaderIndex: 1, query: {toCode: false}}, 'content')).to.equal(NOT_CONVERTED);
@@ -92,7 +94,7 @@ describe('pickTag()', () => {
       {
         context: {resourceQuery: '?tag=RES', query: {pickTag: {tag: 'SPEC'}, tag: 'SHARE'}},
         expectedTag: ['RES']
-      },
+      }
     ].forEach(test => {
       it(`query: ${test.context.resourceQuery || 'NONE'}` +
           ` / options.pickTag.tag: ${test.context.query.pickTag.tag || 'NONE'}` +
@@ -279,6 +281,103 @@ describe('removeTag()', () => {
           test.expected.srcPath, test.expected.pathTest)).to.be.true;
       });
     });
+  });
+
+});
+
+describe('passed/returned value', () => {
+  const Q_METHODS = {pickTag: {}, replaceTag: {}, removeTag: {}, toCode: true},
+    R_METHODS = 'content<pickTag><replaceTag><removeTag>',
+    R_METHODS_CNV = `module.exports = "${R_METHODS}";`,
+    R_NULL_CNV = 'module.exports = null;';
+
+  it('should return processed value by all required methods', () => {
+    pickTagRturnsNull = false;
+
+    resetAll();
+    expect(loader.call({loaderIndex: 1, query: Q_METHODS}, 'content')).to.equal(R_METHODS);
+    expect(preProc.replaceTag.calledOnce).to.be.true;
+    expect(preProc.removeTag.calledOnce).to.be.true;
+    expect(preProc.pickTag.calledOnce).to.be.true;
+    // Converted (loaderIndex: 0)
+    resetAll();
+    expect(loader.call({loaderIndex: 0, query: Q_METHODS}, 'content')).to.equal(R_METHODS_CNV);
+    expect(preProc.replaceTag.calledOnce).to.be.true;
+    expect(preProc.removeTag.calledOnce).to.be.true;
+    expect(preProc.pickTag.calledOnce).to.be.true;
+  });
+
+  it('should return null when passed value is null', () => {
+    pickTagRturnsNull = false;
+
+    resetAll();
+    expect(loader.call({loaderIndex: 1, query: Q_METHODS}, null)).to.be.null;
+    expect(preProc.replaceTag.calledOnce).to.be.false;
+    expect(preProc.removeTag.calledOnce).to.be.false;
+    expect(preProc.pickTag.calledOnce).to.be.false;
+    // Converted (loaderIndex: 0)
+    resetAll();
+    expect(loader.call({loaderIndex: 0, query: Q_METHODS}, null)).to.equal(R_NULL_CNV);
+    expect(preProc.replaceTag.calledOnce).to.be.false;
+    expect(preProc.removeTag.calledOnce).to.be.false;
+    expect(preProc.pickTag.calledOnce).to.be.false;
+  });
+
+  it('should return value that returned by pickTag even if it is null', () => {
+    const Q_PICKTAG = {pickTag: {}, toCode: true},
+      R_PICKTAG = 'content<pickTag>',
+      R_PICKTAG_CNV = `module.exports = "${R_PICKTAG}";`;
+    pickTagRturnsNull = false;
+
+    resetAll();
+    expect(loader.call({loaderIndex: 1, query: Q_PICKTAG}, 'content')).to.equal(R_PICKTAG);
+    expect(preProc.pickTag.calledOnce).to.be.true;
+    // Converted (loaderIndex: 0)
+    resetAll();
+    expect(loader.call({loaderIndex: 0, query: Q_PICKTAG}, 'content')).to.equal(R_PICKTAG_CNV);
+    expect(preProc.pickTag.calledOnce).to.be.true;
+
+    // Returns null
+    pickTagRturnsNull = true;
+
+    resetAll();
+    expect(loader.call({loaderIndex: 1, query: Q_PICKTAG}, 'content')).to.be.null;
+    expect(preProc.pickTag.calledOnce).to.be.true;
+    // Converted (loaderIndex: 0)
+    resetAll();
+    expect(loader.call({loaderIndex: 0, query: Q_PICKTAG}, 'content')).to.equal(R_NULL_CNV);
+    expect(preProc.pickTag.calledOnce).to.be.true;
+  });
+
+  it('should not call other methods when pickTag returned null', () => {
+    pickTagRturnsNull = false;
+
+    resetAll();
+    expect(loader.call({loaderIndex: 1, query: Q_METHODS}, 'content')).to.equal(R_METHODS);
+    expect(preProc.replaceTag.calledOnce).to.be.true;
+    expect(preProc.removeTag.calledOnce).to.be.true;
+    expect(preProc.pickTag.calledOnce).to.be.true;
+    // Converted (loaderIndex: 0)
+    resetAll();
+    expect(loader.call({loaderIndex: 0, query: Q_METHODS}, 'content')).to.equal(R_METHODS_CNV);
+    expect(preProc.replaceTag.calledOnce).to.be.true;
+    expect(preProc.removeTag.calledOnce).to.be.true;
+    expect(preProc.pickTag.calledOnce).to.be.true;
+
+    // Returns null
+    pickTagRturnsNull = true;
+
+    resetAll();
+    expect(loader.call({loaderIndex: 1, query: Q_METHODS}, 'content')).to.be.null;
+    expect(preProc.replaceTag.calledOnce).to.be.false;
+    expect(preProc.removeTag.calledOnce).to.be.false;
+    expect(preProc.pickTag.calledOnce).to.be.true;
+    // Converted (loaderIndex: 0)
+    resetAll();
+    expect(loader.call({loaderIndex: 0, query: Q_METHODS}, 'content')).to.equal(R_NULL_CNV);
+    expect(preProc.replaceTag.calledOnce).to.be.false;
+    expect(preProc.removeTag.calledOnce).to.be.false;
+    expect(preProc.pickTag.calledOnce).to.be.true;
   });
 
 });

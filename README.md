@@ -114,6 +114,9 @@ Following argument is accepted:
 
 - `tag`
 
+When the tag was not found, this method returns `null`, not a string. It is useful for handling unknown source code.  
+Also, you can specify options to call multiple methods, and other methods are not called when the `pickTag` method returned `null`.
+
 ### `toCode`
 
 *Type:* boolean  
