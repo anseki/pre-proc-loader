@@ -27,8 +27,12 @@ For example:
 
 ```js
 // app.js
+
+// The line below is removed.
 TEST_MODE = true; // [DEBUG/]
-var buttonA = require('./buttons.html?tag=BUTTON-A');
+
+// The HTML code for "button A" is picked from buttons.html file, and it inserted to "panel".
+var buttonA = require('./buttons.html?tag=BUTTON-A'); // `tag` argument for pickTag method.
 document.getElementById('panel').innerHTML = buttonA;
 ```
 
@@ -102,8 +106,7 @@ Following arguments are accepted:
 
 - `tag`
 - `pathTest`
-
-And the `options.replaceTag.replacement` also is accepted. (Not `options.replacement`)
+- `replacement` (As `options.replaceTag.replacement`, not `options.replacement`)
 
 ### `pickTag`
 
@@ -113,9 +116,10 @@ You can specify arguments by the same way as the [`removeTag`](#removetag).
 Following argument is accepted:
 
 - `tag`
+- `allowErrors` (As `options.pickTag.allowErrors`, not `options.allowErrors`)
 
-When the tag was not found, this method returns `null`, not a string. It is useful for handling unknown source code.  
-Also, you can specify options to call multiple methods, and other methods are not called when the `pickTag` method returned `null`.
+When the tag was not found, this method throws an error by default. If `true` is specified for `allowErrors`, it returns `null` (not a string) without error. It is useful for handling unknown source code.  
+Also, you can specify options to call multiple methods, and other methods are not called when the tag was not found.
 
 ### `toCode`
 
