@@ -326,7 +326,8 @@ describe('passed/returned value', () => {
   it('should throw an error if pickTag returned null', () => {
     const Q_PICKTAG = {pickTag: {}, toCode: true, tag: 'TAG1'},
       R_PICKTAG = 'content<pickTag>',
-      R_PICKTAG_CNV = `module.exports = "${R_PICKTAG}";`;
+      R_PICKTAG_CNV = `module.exports = "${R_PICKTAG}";`,
+      ERR_MSG = `Not found tag: ${Q_PICKTAG.tag}`;
     pickTagRturnsNull = false;
 
     resetAll();
@@ -341,18 +342,29 @@ describe('passed/returned value', () => {
     pickTagRturnsNull = true;
 
     resetAll();
-    expect(() => { loader.call({loaderIndex: 1, query: Q_PICKTAG}, 'content'); })
-      .to.throw('Not found tag: TAG1');
+    expect(() => { loader.call({loaderIndex: 1, query: Q_PICKTAG}, 'content'); }).to.throw(ERR_MSG);
     expect(preProc.pickTag.calledOnce).to.be.true;
     // Converted (loaderIndex: 0)
     resetAll();
-    expect(() => { loader.call({loaderIndex: 0, query: Q_PICKTAG}, 'content'); })
-      .to.throw('Not found tag: TAG1');
+    expect(() => { loader.call({loaderIndex: 0, query: Q_PICKTAG}, 'content'); }).to.throw(ERR_MSG);
     expect(preProc.pickTag.calledOnce).to.be.true;
   });
 
+  it('should control an error by allowErrors', () => {
+    const
+      Q1 = {tag: 'TAG1', pickTag: {}},
+      Q2 = {tag: 'TAG1', pickTag: {allowErrors: false}},
+      Q3 = {tag: 'TAG1', pickTag: {allowErrors: true}},
+      ERR_MSG = `Not found tag: ${Q1.tag}`;
+    pickTagRturnsNull = true;
+
+    expect(() => { loader.call({loaderIndex: 1, query: Q1}, 'content'); }).to.throw(ERR_MSG);
+    expect(() => { loader.call({loaderIndex: 1, query: Q2}, 'content'); }).to.throw(ERR_MSG);
+    expect(loader.call({loaderIndex: 1, query: Q3}, 'content')).to.be.null;
+  });
+
   it('should return value from pickTag with allowErrors even if it is null', () => {
-    const Q_PICKTAG = {pickTag: {}, toCode: true, tag: 'TAG1', allowErrors: true},
+    const Q_PICKTAG = {pickTag: {allowErrors: true}, toCode: true, tag: 'TAG1'},
       R_PICKTAG = 'content<pickTag>',
       R_PICKTAG_CNV = `module.exports = "${R_PICKTAG}";`;
     pickTagRturnsNull = false;
@@ -379,7 +391,7 @@ describe('passed/returned value', () => {
 
   it('should not call other methods when pickTag returned null', () => {
     const Q_METHODS_ARR =
-      {pickTag: {}, replaceTag: {}, removeTag: {}, toCode: true, tag: 'TAG1', allowErrors: true};
+      {pickTag: {allowErrors: true}, replaceTag: {}, removeTag: {}, toCode: true, tag: 'TAG1'};
     pickTagRturnsNull = false;
 
     resetAll();
