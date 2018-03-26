@@ -113,7 +113,7 @@ Following arguments are accepted:
 If `pickTag` option is specified, call [`pickTag`](https://github.com/anseki/pre-proc#picktag) method with current content.
 
 You can specify arguments by the same way as the [`removeTag`](#removetag).  
-Following argument is accepted:
+Following arguments are accepted:
 
 - `tag`
 - `allowErrors` (As `options.pickTag.allowErrors`, not `options.allowErrors`)
