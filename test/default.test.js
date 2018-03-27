@@ -1,15 +1,15 @@
 'use strict';
 
 let pickTagRturnsNull;
-const proxyquire = require('proxyquire').noPreserveCache(),
+const expect = require('chai').expect,
   sinon = require('sinon'),
+  proxyquire = require('proxyquire').noPreserveCache(),
   preProc = {
     replaceTag: sinon.spy((tag, replacement, content) => `${content}<replaceTag>`),
     removeTag: sinon.spy((tag, content) => `${content}<removeTag>`),
     pickTag: sinon.spy((tag, content) => (pickTagRturnsNull ? null : `${content}<pickTag>`))
   },
-  loader = proxyquire('../', {'pre-proc': preProc}),
-  expect = require('chai').expect;
+  loader = proxyquire('../', {'pre-proc': preProc});
 
 function resetAll() {
   preProc.replaceTag.resetHistory();
@@ -286,7 +286,7 @@ describe('removeTag()', () => {
 });
 
 describe('passed/returned value', () => {
-  const Q_METHODS = {pickTag: {}, replaceTag: {}, removeTag: {}, toCode: true, tag: 'TAG1'},
+  const OPTS_METHODS = {pickTag: {}, replaceTag: {}, removeTag: {}, toCode: true, tag: 'TAG1'},
     R_METHODS = 'content<pickTag><replaceTag><removeTag>',
     R_METHODS_CNV = `module.exports = "${R_METHODS}";`,
     R_NULL_CNV = 'module.exports = null;';
@@ -295,13 +295,13 @@ describe('passed/returned value', () => {
     pickTagRturnsNull = false;
 
     resetAll();
-    expect(loader.call({loaderIndex: 1, query: Q_METHODS}, 'content')).to.equal(R_METHODS);
+    expect(loader.call({loaderIndex: 1, query: OPTS_METHODS}, 'content')).to.equal(R_METHODS);
     expect(preProc.replaceTag.calledOnce).to.be.true;
     expect(preProc.removeTag.calledOnce).to.be.true;
     expect(preProc.pickTag.calledOnce).to.be.true;
     // Converted (loaderIndex: 0)
     resetAll();
-    expect(loader.call({loaderIndex: 0, query: Q_METHODS}, 'content')).to.equal(R_METHODS_CNV);
+    expect(loader.call({loaderIndex: 0, query: OPTS_METHODS}, 'content')).to.equal(R_METHODS_CNV);
     expect(preProc.replaceTag.calledOnce).to.be.true;
     expect(preProc.removeTag.calledOnce).to.be.true;
     expect(preProc.pickTag.calledOnce).to.be.true;
@@ -311,97 +311,97 @@ describe('passed/returned value', () => {
     pickTagRturnsNull = false;
 
     resetAll();
-    expect(loader.call({loaderIndex: 1, query: Q_METHODS}, null)).to.be.null;
+    expect(loader.call({loaderIndex: 1, query: OPTS_METHODS}, null)).to.be.null;
     expect(preProc.replaceTag.calledOnce).to.be.false;
     expect(preProc.removeTag.calledOnce).to.be.false;
     expect(preProc.pickTag.calledOnce).to.be.false;
     // Converted (loaderIndex: 0)
     resetAll();
-    expect(loader.call({loaderIndex: 0, query: Q_METHODS}, null)).to.equal(R_NULL_CNV);
+    expect(loader.call({loaderIndex: 0, query: OPTS_METHODS}, null)).to.equal(R_NULL_CNV);
     expect(preProc.replaceTag.calledOnce).to.be.false;
     expect(preProc.removeTag.calledOnce).to.be.false;
     expect(preProc.pickTag.calledOnce).to.be.false;
   });
 
   it('should throw an error if pickTag returned null', () => {
-    const Q_PICKTAG = {pickTag: {}, toCode: true, tag: 'TAG1'},
+    const OPTS_PICKTAG = {pickTag: {}, toCode: true, tag: 'TAG1'},
       R_PICKTAG = 'content<pickTag>',
       R_PICKTAG_CNV = `module.exports = "${R_PICKTAG}";`,
-      ERR_MSG = `Not found tag: ${Q_PICKTAG.tag}`;
+      ERR_MSG = `Not found tag: ${OPTS_PICKTAG.tag}`;
     pickTagRturnsNull = false;
 
     resetAll();
-    expect(loader.call({loaderIndex: 1, query: Q_PICKTAG}, 'content')).to.equal(R_PICKTAG);
+    expect(loader.call({loaderIndex: 1, query: OPTS_PICKTAG}, 'content')).to.equal(R_PICKTAG);
     expect(preProc.pickTag.calledOnce).to.be.true;
     // Converted (loaderIndex: 0)
     resetAll();
-    expect(loader.call({loaderIndex: 0, query: Q_PICKTAG}, 'content')).to.equal(R_PICKTAG_CNV);
+    expect(loader.call({loaderIndex: 0, query: OPTS_PICKTAG}, 'content')).to.equal(R_PICKTAG_CNV);
     expect(preProc.pickTag.calledOnce).to.be.true;
 
     // Returns null
     pickTagRturnsNull = true;
 
     resetAll();
-    expect(() => { loader.call({loaderIndex: 1, query: Q_PICKTAG}, 'content'); }).to.throw(ERR_MSG);
+    expect(() => { loader.call({loaderIndex: 1, query: OPTS_PICKTAG}, 'content'); }).to.throw(ERR_MSG);
     expect(preProc.pickTag.calledOnce).to.be.true;
     // Converted (loaderIndex: 0)
     resetAll();
-    expect(() => { loader.call({loaderIndex: 0, query: Q_PICKTAG}, 'content'); }).to.throw(ERR_MSG);
+    expect(() => { loader.call({loaderIndex: 0, query: OPTS_PICKTAG}, 'content'); }).to.throw(ERR_MSG);
     expect(preProc.pickTag.calledOnce).to.be.true;
   });
 
   it('should control an error by allowErrors', () => {
     const
-      Q1 = {tag: 'TAG1', pickTag: {}},
-      Q2 = {tag: 'TAG1', pickTag: {allowErrors: false}},
-      Q3 = {tag: 'TAG1', pickTag: {allowErrors: true}},
-      ERR_MSG = `Not found tag: ${Q1.tag}`;
+      OPTS1 = {tag: 'TAG1', pickTag: {}},
+      OPTS2 = {tag: 'TAG1', pickTag: {allowErrors: false}},
+      OPTS3 = {tag: 'TAG1', pickTag: {allowErrors: true}},
+      ERR_MSG = `Not found tag: ${OPTS1.tag}`;
     pickTagRturnsNull = true;
 
-    expect(() => { loader.call({loaderIndex: 1, query: Q1}, 'content'); }).to.throw(ERR_MSG);
-    expect(() => { loader.call({loaderIndex: 1, query: Q2}, 'content'); }).to.throw(ERR_MSG);
-    expect(loader.call({loaderIndex: 1, query: Q3}, 'content')).to.be.null;
+    expect(() => { loader.call({loaderIndex: 1, query: OPTS1}, 'content'); }).to.throw(ERR_MSG);
+    expect(() => { loader.call({loaderIndex: 1, query: OPTS2}, 'content'); }).to.throw(ERR_MSG);
+    expect(loader.call({loaderIndex: 1, query: OPTS3}, 'content')).to.be.null;
   });
 
   it('should return value from pickTag with allowErrors even if it is null', () => {
-    const Q_PICKTAG = {pickTag: {allowErrors: true}, toCode: true, tag: 'TAG1'},
+    const OPTS_PICKTAG = {pickTag: {allowErrors: true}, toCode: true, tag: 'TAG1'},
       R_PICKTAG = 'content<pickTag>',
       R_PICKTAG_CNV = `module.exports = "${R_PICKTAG}";`;
     pickTagRturnsNull = false;
 
     resetAll();
-    expect(loader.call({loaderIndex: 1, query: Q_PICKTAG}, 'content')).to.equal(R_PICKTAG);
+    expect(loader.call({loaderIndex: 1, query: OPTS_PICKTAG}, 'content')).to.equal(R_PICKTAG);
     expect(preProc.pickTag.calledOnce).to.be.true;
     // Converted (loaderIndex: 0)
     resetAll();
-    expect(loader.call({loaderIndex: 0, query: Q_PICKTAG}, 'content')).to.equal(R_PICKTAG_CNV);
+    expect(loader.call({loaderIndex: 0, query: OPTS_PICKTAG}, 'content')).to.equal(R_PICKTAG_CNV);
     expect(preProc.pickTag.calledOnce).to.be.true;
 
     // Returns null
     pickTagRturnsNull = true;
 
     resetAll();
-    expect(loader.call({loaderIndex: 1, query: Q_PICKTAG}, 'content')).to.be.null;
+    expect(loader.call({loaderIndex: 1, query: OPTS_PICKTAG}, 'content')).to.be.null;
     expect(preProc.pickTag.calledOnce).to.be.true;
     // Converted (loaderIndex: 0)
     resetAll();
-    expect(loader.call({loaderIndex: 0, query: Q_PICKTAG}, 'content')).to.equal(R_NULL_CNV);
+    expect(loader.call({loaderIndex: 0, query: OPTS_PICKTAG}, 'content')).to.equal(R_NULL_CNV);
     expect(preProc.pickTag.calledOnce).to.be.true;
   });
 
   it('should not call other methods when pickTag returned null', () => {
-    const Q_METHODS_ARR =
+    const OPTS_METHODS_ARR =
       {pickTag: {allowErrors: true}, replaceTag: {}, removeTag: {}, toCode: true, tag: 'TAG1'};
     pickTagRturnsNull = false;
 
     resetAll();
-    expect(loader.call({loaderIndex: 1, query: Q_METHODS_ARR}, 'content')).to.equal(R_METHODS);
+    expect(loader.call({loaderIndex: 1, query: OPTS_METHODS_ARR}, 'content')).to.equal(R_METHODS);
     expect(preProc.replaceTag.calledOnce).to.be.true;
     expect(preProc.removeTag.calledOnce).to.be.true;
     expect(preProc.pickTag.calledOnce).to.be.true;
     // Converted (loaderIndex: 0)
     resetAll();
-    expect(loader.call({loaderIndex: 0, query: Q_METHODS_ARR}, 'content')).to.equal(R_METHODS_CNV);
+    expect(loader.call({loaderIndex: 0, query: OPTS_METHODS_ARR}, 'content')).to.equal(R_METHODS_CNV);
     expect(preProc.replaceTag.calledOnce).to.be.true;
     expect(preProc.removeTag.calledOnce).to.be.true;
     expect(preProc.pickTag.calledOnce).to.be.true;
@@ -410,13 +410,13 @@ describe('passed/returned value', () => {
     pickTagRturnsNull = true;
 
     resetAll();
-    expect(loader.call({loaderIndex: 1, query: Q_METHODS_ARR}, 'content')).to.be.null;
+    expect(loader.call({loaderIndex: 1, query: OPTS_METHODS_ARR}, 'content')).to.be.null;
     expect(preProc.replaceTag.calledOnce).to.be.false;
     expect(preProc.removeTag.calledOnce).to.be.false;
     expect(preProc.pickTag.calledOnce).to.be.true;
     // Converted (loaderIndex: 0)
     resetAll();
-    expect(loader.call({loaderIndex: 0, query: Q_METHODS_ARR}, 'content')).to.equal(R_NULL_CNV);
+    expect(loader.call({loaderIndex: 0, query: OPTS_METHODS_ARR}, 'content')).to.equal(R_NULL_CNV);
     expect(preProc.replaceTag.calledOnce).to.be.false;
     expect(preProc.removeTag.calledOnce).to.be.false;
     expect(preProc.pickTag.calledOnce).to.be.true;
