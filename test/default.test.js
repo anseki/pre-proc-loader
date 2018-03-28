@@ -103,8 +103,7 @@ describe('pickTag()', () => {
         loader.call(test.context, 'content');
         expect(preProc.replaceTag.notCalled).to.be.true;
         expect(preProc.removeTag.notCalled).to.be.true;
-        expect(preProc.pickTag.calledOnce).to.be.true;
-        expect(preProc.pickTag.calledWithExactly(test.expectedTag, 'content')).to.be.true;
+        expect(preProc.pickTag.calledOnceWithExactly(test.expectedTag, 'content')).to.be.true;
       });
     });
   });
@@ -154,11 +153,10 @@ describe('replaceTag()', () => {
         resetAll();
         test.context.query.replaceTag.replacement = 'replacement';
         loader.call(test.context, 'content');
-        expect(preProc.replaceTag.calledOnce).to.be.true;
+        expect(preProc.replaceTag.calledOnceWithExactly(test.expectedTag,
+          'replacement', 'content', null, void 0)).to.be.true;
         expect(preProc.removeTag.notCalled).to.be.true;
         expect(preProc.pickTag.notCalled).to.be.true;
-        expect(preProc.replaceTag.calledWithExactly(test.expectedTag,
-          'replacement', 'content', null, void 0)).to.be.true;
       });
     });
   });
@@ -188,11 +186,10 @@ describe('replaceTag()', () => {
         test.context.query.replaceTag.tag = 'TAG';
         test.context.query.replaceTag.replacement = 'replacement';
         loader.call(test.context, 'content');
-        expect(preProc.replaceTag.calledOnce).to.be.true;
+        expect(preProc.replaceTag.calledOnceWithExactly('TAG', 'replacement', 'content',
+          test.expected.srcPath, test.expected.pathTest)).to.be.true;
         expect(preProc.removeTag.notCalled).to.be.true;
         expect(preProc.pickTag.notCalled).to.be.true;
-        expect(preProc.replaceTag.calledWithExactly('TAG', 'replacement', 'content',
-          test.expected.srcPath, test.expected.pathTest)).to.be.true;
       });
     });
   });
@@ -242,10 +239,9 @@ describe('removeTag()', () => {
         resetAll();
         loader.call(test.context, 'content');
         expect(preProc.replaceTag.notCalled).to.be.true;
-        expect(preProc.removeTag.calledOnce).to.be.true;
-        expect(preProc.pickTag.notCalled).to.be.true;
-        expect(preProc.removeTag.calledWithExactly(test.expectedTag,
+        expect(preProc.removeTag.calledOnceWithExactly(test.expectedTag,
           'content', null, void 0)).to.be.true;
+        expect(preProc.pickTag.notCalled).to.be.true;
       });
     });
   });
@@ -275,10 +271,9 @@ describe('removeTag()', () => {
         test.context.query.removeTag.tag = 'TAG';
         loader.call(test.context, 'content');
         expect(preProc.replaceTag.notCalled).to.be.true;
-        expect(preProc.removeTag.calledOnce).to.be.true;
-        expect(preProc.pickTag.notCalled).to.be.true;
-        expect(preProc.removeTag.calledWithExactly('TAG', 'content',
+        expect(preProc.removeTag.calledOnceWithExactly('TAG', 'content',
           test.expected.srcPath, test.expected.pathTest)).to.be.true;
+        expect(preProc.pickTag.notCalled).to.be.true;
       });
     });
   });
