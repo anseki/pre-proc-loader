@@ -22,8 +22,8 @@ describe('when option for each method is passed', () => {
   it('should call only pickTag', () => {
     resetAll();
     loader.call({query: {pickTag: {}}}, 'content');
-    expect(preProc.replaceTag.calledOnce).to.be.false;
-    expect(preProc.removeTag.calledOnce).to.be.false;
+    expect(preProc.replaceTag.notCalled).to.be.true;
+    expect(preProc.removeTag.notCalled).to.be.true;
     expect(preProc.pickTag.calledOnce).to.be.true;
   });
 
@@ -31,7 +31,7 @@ describe('when option for each method is passed', () => {
     resetAll();
     loader.call({query: {replaceTag: {}, pickTag: {}}}, 'content');
     expect(preProc.replaceTag.calledOnce).to.be.true;
-    expect(preProc.removeTag.calledOnce).to.be.false;
+    expect(preProc.removeTag.notCalled).to.be.true;
     expect(preProc.pickTag.calledOnce).to.be.true;
   });
 
@@ -101,8 +101,8 @@ describe('pickTag()', () => {
           ` / options.tag: ${test.context.query.tag || 'NONE'}`, () => {
         resetAll();
         loader.call(test.context, 'content');
-        expect(preProc.replaceTag.calledOnce).to.be.false;
-        expect(preProc.removeTag.calledOnce).to.be.false;
+        expect(preProc.replaceTag.notCalled).to.be.true;
+        expect(preProc.removeTag.notCalled).to.be.true;
         expect(preProc.pickTag.calledOnce).to.be.true;
         expect(preProc.pickTag.calledWithExactly(test.expectedTag, 'content')).to.be.true;
       });
@@ -155,8 +155,8 @@ describe('replaceTag()', () => {
         test.context.query.replaceTag.replacement = 'replacement';
         loader.call(test.context, 'content');
         expect(preProc.replaceTag.calledOnce).to.be.true;
-        expect(preProc.removeTag.calledOnce).to.be.false;
-        expect(preProc.pickTag.calledOnce).to.be.false;
+        expect(preProc.removeTag.notCalled).to.be.true;
+        expect(preProc.pickTag.notCalled).to.be.true;
         expect(preProc.replaceTag.calledWithExactly(test.expectedTag,
           'replacement', 'content', null, void 0)).to.be.true;
       });
@@ -189,8 +189,8 @@ describe('replaceTag()', () => {
         test.context.query.replaceTag.replacement = 'replacement';
         loader.call(test.context, 'content');
         expect(preProc.replaceTag.calledOnce).to.be.true;
-        expect(preProc.removeTag.calledOnce).to.be.false;
-        expect(preProc.pickTag.calledOnce).to.be.false;
+        expect(preProc.removeTag.notCalled).to.be.true;
+        expect(preProc.pickTag.notCalled).to.be.true;
         expect(preProc.replaceTag.calledWithExactly('TAG', 'replacement', 'content',
           test.expected.srcPath, test.expected.pathTest)).to.be.true;
       });
@@ -241,9 +241,9 @@ describe('removeTag()', () => {
           ` / options.tag: ${test.context.query.tag || 'NONE'}`, () => {
         resetAll();
         loader.call(test.context, 'content');
-        expect(preProc.replaceTag.calledOnce).to.be.false;
+        expect(preProc.replaceTag.notCalled).to.be.true;
         expect(preProc.removeTag.calledOnce).to.be.true;
-        expect(preProc.pickTag.calledOnce).to.be.false;
+        expect(preProc.pickTag.notCalled).to.be.true;
         expect(preProc.removeTag.calledWithExactly(test.expectedTag,
           'content', null, void 0)).to.be.true;
       });
@@ -274,9 +274,9 @@ describe('removeTag()', () => {
         resetAll();
         test.context.query.removeTag.tag = 'TAG';
         loader.call(test.context, 'content');
-        expect(preProc.replaceTag.calledOnce).to.be.false;
+        expect(preProc.replaceTag.notCalled).to.be.true;
         expect(preProc.removeTag.calledOnce).to.be.true;
-        expect(preProc.pickTag.calledOnce).to.be.false;
+        expect(preProc.pickTag.notCalled).to.be.true;
         expect(preProc.removeTag.calledWithExactly('TAG', 'content',
           test.expected.srcPath, test.expected.pathTest)).to.be.true;
       });
@@ -312,15 +312,15 @@ describe('passed/returned value', () => {
 
     resetAll();
     expect(loader.call({loaderIndex: 1, query: OPTS_METHODS}, null)).to.be.null;
-    expect(preProc.replaceTag.calledOnce).to.be.false;
-    expect(preProc.removeTag.calledOnce).to.be.false;
-    expect(preProc.pickTag.calledOnce).to.be.false;
+    expect(preProc.replaceTag.notCalled).to.be.true;
+    expect(preProc.removeTag.notCalled).to.be.true;
+    expect(preProc.pickTag.notCalled).to.be.true;
     // Converted (loaderIndex: 0)
     resetAll();
     expect(loader.call({loaderIndex: 0, query: OPTS_METHODS}, null)).to.equal(R_NULL_CNV);
-    expect(preProc.replaceTag.calledOnce).to.be.false;
-    expect(preProc.removeTag.calledOnce).to.be.false;
-    expect(preProc.pickTag.calledOnce).to.be.false;
+    expect(preProc.replaceTag.notCalled).to.be.true;
+    expect(preProc.removeTag.notCalled).to.be.true;
+    expect(preProc.pickTag.notCalled).to.be.true;
   });
 
   it('should throw an error if pickTag returned null', () => {
@@ -411,14 +411,14 @@ describe('passed/returned value', () => {
 
     resetAll();
     expect(loader.call({loaderIndex: 1, query: OPTS_METHODS_ARR}, 'content')).to.be.null;
-    expect(preProc.replaceTag.calledOnce).to.be.false;
-    expect(preProc.removeTag.calledOnce).to.be.false;
+    expect(preProc.replaceTag.notCalled).to.be.true;
+    expect(preProc.removeTag.notCalled).to.be.true;
     expect(preProc.pickTag.calledOnce).to.be.true;
     // Converted (loaderIndex: 0)
     resetAll();
     expect(loader.call({loaderIndex: 0, query: OPTS_METHODS_ARR}, 'content')).to.equal(R_NULL_CNV);
-    expect(preProc.replaceTag.calledOnce).to.be.false;
-    expect(preProc.removeTag.calledOnce).to.be.false;
+    expect(preProc.replaceTag.notCalled).to.be.true;
+    expect(preProc.removeTag.notCalled).to.be.true;
     expect(preProc.pickTag.calledOnce).to.be.true;
   });
 
