@@ -9,7 +9,9 @@ const expect = require('chai').expect,
     replaceTag: sinon.spy((tag, replacement, content) => `${content}<replaceTag>`),
     removeTag: sinon.spy((tag, content) => `${content}<removeTag>`)
   },
-  loader = proxyquire('../', {'pre-proc': preProc});
+  loader = proxyquire('../', {'pre-proc': preProc}),
+
+  CONTENTS = 'content';
 
 function resetAll() {
   preProc.pickTag.resetHistory();
@@ -21,24 +23,27 @@ describe('implements a basic flow as loader', () => {
   const OPTS_REPLACETAG = {tag: 'TAG1'};
 
   it('should return processed value', () => {
+    const RES_REPLACETAG = `${CONTENTS}<replaceTag>`,
+      RES_REPLACETAG_CNV = `module.exports = "${RES_REPLACETAG}";`;
+
     pickTagRturnsNull = false;
     resetAll();
     expect(loader.call(
-      {loaderIndex: 1, query: {replaceTag: OPTS_REPLACETAG, toCode: true}}, 'content'))
-      .to.equal('content<replaceTag>');
+      {loaderIndex: 1, query: {replaceTag: OPTS_REPLACETAG, toCode: true}}, CONTENTS))
+      .to.equal(RES_REPLACETAG);
     expect(preProc.pickTag.notCalled).to.be.true;
     expect(preProc.replaceTag
-      .calledOnceWithExactly(OPTS_REPLACETAG.tag, void 0, 'content', null, void 0))
+      .calledOnceWithExactly(OPTS_REPLACETAG.tag, void 0, CONTENTS, null, void 0))
       .to.be.true;
     expect(preProc.removeTag.notCalled).to.be.true;
     // Converted (loaderIndex: 0)
     resetAll();
     expect(loader.call(
-      {loaderIndex: 0, query: {replaceTag: OPTS_REPLACETAG, toCode: true}}, 'content'))
-      .to.equal('module.exports = "content<replaceTag>";');
+      {loaderIndex: 0, query: {replaceTag: OPTS_REPLACETAG, toCode: true}}, CONTENTS))
+      .to.equal(RES_REPLACETAG_CNV);
     expect(preProc.pickTag.notCalled).to.be.true;
     expect(preProc.replaceTag
-      .calledOnceWithExactly(OPTS_REPLACETAG.tag, void 0, 'content', null, void 0))
+      .calledOnceWithExactly(OPTS_REPLACETAG.tag, void 0, CONTENTS, null, void 0))
       .to.be.true;
     expect(preProc.removeTag.notCalled).to.be.true;
   });
@@ -70,8 +75,8 @@ describe('when option for each method is passed', () => {
   it('should call only pickTag', () => {
     pickTagRturnsNull = false;
     resetAll();
-    expect(loader.call({query: {pickTag: OPTS_PICKTAG}}, 'content')).to.equal('content<pickTag>');
-    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, 'content')).to.be.true;
+    expect(loader.call({query: {pickTag: OPTS_PICKTAG}}, CONTENTS)).to.equal(`${CONTENTS}<pickTag>`);
+    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, CONTENTS)).to.be.true;
     expect(preProc.replaceTag.notCalled).to.be.true;
     expect(preProc.removeTag.notCalled).to.be.true;
   });
@@ -79,11 +84,11 @@ describe('when option for each method is passed', () => {
   it('should call pickTag and replaceTag', () => {
     pickTagRturnsNull = false;
     resetAll();
-    expect(loader.call({query: {pickTag: OPTS_PICKTAG, replaceTag: OPTS_REPLACETAG}}, 'content'))
-      .to.equal('content<pickTag><replaceTag>');
-    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, 'content')).to.be.true;
+    expect(loader.call({query: {pickTag: OPTS_PICKTAG, replaceTag: OPTS_REPLACETAG}}, CONTENTS))
+      .to.equal(`${CONTENTS}<pickTag><replaceTag>`);
+    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, CONTENTS)).to.be.true;
     expect(preProc.replaceTag
-      .calledOnceWithExactly(OPTS_REPLACETAG.tag, void 0, 'content<pickTag>', null, void 0))
+      .calledOnceWithExactly(OPTS_REPLACETAG.tag, void 0, `${CONTENTS}<pickTag>`, null, void 0))
       .to.be.true;
     expect(preProc.removeTag.notCalled).to.be.true;
   });
@@ -91,23 +96,23 @@ describe('when option for each method is passed', () => {
 });
 
 describe('converts output as code', () => {
-  const CONVERTED = 'module.exports = "content";',
-    NOT_CONVERTED = 'content';
+  const RES = CONTENTS,
+    RES_CNV = `module.exports = "${RES}";`;
 
   it('should not convert content when loaderIndex: 1 / toCode: false', () => {
-    expect(loader.call({loaderIndex: 1, query: {toCode: false}}, 'content')).to.equal(NOT_CONVERTED);
+    expect(loader.call({loaderIndex: 1, query: {toCode: false}}, CONTENTS)).to.equal(RES);
   });
 
   it('should not convert content when loaderIndex: 1 / toCode: true', () => {
-    expect(loader.call({loaderIndex: 1, query: {toCode: true}}, 'content')).to.equal(NOT_CONVERTED);
+    expect(loader.call({loaderIndex: 1, query: {toCode: true}}, CONTENTS)).to.equal(RES);
   });
 
   it('should not convert content when loaderIndex: 0 / toCode: false', () => {
-    expect(loader.call({loaderIndex: 0, query: {toCode: false}}, 'content')).to.equal(NOT_CONVERTED);
+    expect(loader.call({loaderIndex: 0, query: {toCode: false}}, CONTENTS)).to.equal(RES);
   });
 
   it('should convert content when loaderIndex: 0 / toCode: true', () => {
-    expect(loader.call({loaderIndex: 0, query: {toCode: true}}, 'content')).to.equal(CONVERTED);
+    expect(loader.call({loaderIndex: 0, query: {toCode: true}}, CONTENTS)).to.equal(RES_CNV);
   });
 
 });
@@ -154,8 +159,8 @@ describe('pickTag()', () => {
           ` / options.tag: ${test.context.query.tag || 'NONE'}`, () => {
         pickTagRturnsNull = false;
         resetAll();
-        loader.call(test.context, 'content');
-        expect(preProc.pickTag.calledOnceWithExactly(test.expectedTag, 'content')).to.be.true;
+        loader.call(test.context, CONTENTS);
+        expect(preProc.pickTag.calledOnceWithExactly(test.expectedTag, CONTENTS)).to.be.true;
         expect(preProc.replaceTag.notCalled).to.be.true;
         expect(preProc.removeTag.notCalled).to.be.true;
       });
@@ -207,10 +212,10 @@ describe('replaceTag()', () => {
         pickTagRturnsNull = false;
         resetAll();
         test.context.query.replaceTag.replacement = 'replacement';
-        loader.call(test.context, 'content');
+        loader.call(test.context, CONTENTS);
         expect(preProc.pickTag.notCalled).to.be.true;
         expect(preProc.replaceTag
-          .calledOnceWithExactly(test.expectedTag, 'replacement', 'content', null, void 0))
+          .calledOnceWithExactly(test.expectedTag, 'replacement', CONTENTS, null, void 0))
           .to.be.true;
         expect(preProc.removeTag.notCalled).to.be.true;
       });
@@ -242,10 +247,10 @@ describe('replaceTag()', () => {
         resetAll();
         test.context.query.replaceTag.tag = 'TAG';
         test.context.query.replaceTag.replacement = 'replacement';
-        loader.call(test.context, 'content');
+        loader.call(test.context, CONTENTS);
         expect(preProc.pickTag.notCalled).to.be.true;
         expect(preProc.replaceTag
-          .calledOnceWithExactly('TAG', 'replacement', 'content',
+          .calledOnceWithExactly('TAG', 'replacement', CONTENTS,
             test.expected.srcPath, test.expected.pathTest)).to.be.true;
         expect(preProc.removeTag.notCalled).to.be.true;
       });
@@ -296,11 +301,11 @@ describe('removeTag()', () => {
           ` / options.tag: ${test.context.query.tag || 'NONE'}`, () => {
         pickTagRturnsNull = false;
         resetAll();
-        loader.call(test.context, 'content');
+        loader.call(test.context, CONTENTS);
         expect(preProc.pickTag.notCalled).to.be.true;
         expect(preProc.replaceTag.notCalled).to.be.true;
         expect(preProc.removeTag
-          .calledOnceWithExactly(test.expectedTag, 'content', null, void 0)).to.be.true;
+          .calledOnceWithExactly(test.expectedTag, CONTENTS, null, void 0)).to.be.true;
       });
     });
   });
@@ -329,11 +334,11 @@ describe('removeTag()', () => {
         pickTagRturnsNull = false;
         resetAll();
         test.context.query.removeTag.tag = 'TAG';
-        loader.call(test.context, 'content');
+        loader.call(test.context, CONTENTS);
         expect(preProc.pickTag.notCalled).to.be.true;
         expect(preProc.replaceTag.notCalled).to.be.true;
         expect(preProc.removeTag
-          .calledOnceWithExactly('TAG', 'content', test.expected.srcPath, test.expected.pathTest))
+          .calledOnceWithExactly('TAG', CONTENTS, test.expected.srcPath, test.expected.pathTest))
           .to.be.true;
       });
     });
@@ -343,30 +348,30 @@ describe('removeTag()', () => {
 
 describe('passed/returned value', () => {
   const OPTS_ALL = {pickTag: {}, replaceTag: {}, removeTag: {}, tag: 'TAG1', toCode: true},
-    RES_ALL = 'content<pickTag><replaceTag><removeTag>',
+    RES_ALL = `${CONTENTS}<pickTag><replaceTag><removeTag>`,
     RES_ALL_CNV = `module.exports = "${RES_ALL}";`,
     RES_NULL_CNV = 'module.exports = null;';
 
   it('should return processed value by all required methods', () => {
     pickTagRturnsNull = false;
     resetAll();
-    expect(loader.call({loaderIndex: 1, query: OPTS_ALL}, 'content')).to.equal(RES_ALL);
-    expect(preProc.pickTag.calledOnceWithExactly(OPTS_ALL.tag, 'content')).to.be.true;
+    expect(loader.call({loaderIndex: 1, query: OPTS_ALL}, CONTENTS)).to.equal(RES_ALL);
+    expect(preProc.pickTag.calledOnceWithExactly(OPTS_ALL.tag, CONTENTS)).to.be.true;
     expect(preProc.replaceTag
-      .calledOnceWithExactly(OPTS_ALL.tag, void 0, 'content<pickTag>', null, void 0))
+      .calledOnceWithExactly(OPTS_ALL.tag, void 0, `${CONTENTS}<pickTag>`, null, void 0))
       .to.be.true;
     expect(preProc.removeTag
-      .calledOnceWithExactly(OPTS_ALL.tag, 'content<pickTag><replaceTag>', null, void 0))
+      .calledOnceWithExactly(OPTS_ALL.tag, `${CONTENTS}<pickTag><replaceTag>`, null, void 0))
       .to.be.true;
     // Converted (loaderIndex: 0)
     resetAll();
-    expect(loader.call({loaderIndex: 0, query: OPTS_ALL}, 'content')).to.equal(RES_ALL_CNV);
-    expect(preProc.pickTag.calledOnceWithExactly(OPTS_ALL.tag, 'content')).to.be.true;
+    expect(loader.call({loaderIndex: 0, query: OPTS_ALL}, CONTENTS)).to.equal(RES_ALL_CNV);
+    expect(preProc.pickTag.calledOnceWithExactly(OPTS_ALL.tag, CONTENTS)).to.be.true;
     expect(preProc.replaceTag
-      .calledOnceWithExactly(OPTS_ALL.tag, void 0, 'content<pickTag>', null, void 0))
+      .calledOnceWithExactly(OPTS_ALL.tag, void 0, `${CONTENTS}<pickTag>`, null, void 0))
       .to.be.true;
     expect(preProc.removeTag
-      .calledOnceWithExactly(OPTS_ALL.tag, 'content<pickTag><replaceTag>', null, void 0))
+      .calledOnceWithExactly(OPTS_ALL.tag, `${CONTENTS}<pickTag><replaceTag>`, null, void 0))
       .to.be.true;
   });
 
@@ -387,30 +392,30 @@ describe('passed/returned value', () => {
 
   it('should throw an error if pickTag returned a null', () => {
     const OPTS_PICKTAG = {pickTag: {}, tag: 'TAG1', toCode: true},
-      RES_PICKTAG = 'content<pickTag>',
+      RES_PICKTAG = `${CONTENTS}<pickTag>`,
       RES_PICKTAG_CNV = `module.exports = "${RES_PICKTAG}";`,
       ERR_MSG = `Not found tag: ${OPTS_PICKTAG.tag}`;
 
     pickTagRturnsNull = false;
     resetAll();
-    expect(loader.call({loaderIndex: 1, query: OPTS_PICKTAG}, 'content')).to.equal(RES_PICKTAG);
-    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, 'content')).to.be.true;
+    expect(loader.call({loaderIndex: 1, query: OPTS_PICKTAG}, CONTENTS)).to.equal(RES_PICKTAG);
+    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, CONTENTS)).to.be.true;
     // Converted (loaderIndex: 0)
     resetAll();
-    expect(loader.call({loaderIndex: 0, query: OPTS_PICKTAG}, 'content')).to.equal(RES_PICKTAG_CNV);
-    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, 'content')).to.be.true;
+    expect(loader.call({loaderIndex: 0, query: OPTS_PICKTAG}, CONTENTS)).to.equal(RES_PICKTAG_CNV);
+    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, CONTENTS)).to.be.true;
 
     // Returns null
     pickTagRturnsNull = true;
     resetAll();
-    expect(() => { loader.call({loaderIndex: 1, query: OPTS_PICKTAG}, 'content'); })
+    expect(() => { loader.call({loaderIndex: 1, query: OPTS_PICKTAG}, CONTENTS); })
       .to.throw(ERR_MSG);
-    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, 'content')).to.be.true;
+    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, CONTENTS)).to.be.true;
     // Converted (loaderIndex: 0)
     resetAll();
-    expect(() => { loader.call({loaderIndex: 0, query: OPTS_PICKTAG}, 'content'); })
+    expect(() => { loader.call({loaderIndex: 0, query: OPTS_PICKTAG}, CONTENTS); })
       .to.throw(ERR_MSG);
-    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, 'content')).to.be.true;
+    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, CONTENTS)).to.be.true;
   });
 
   it('should control an error by allowErrors', () => {
@@ -421,34 +426,34 @@ describe('passed/returned value', () => {
       ERR_MSG = `Not found tag: ${OPTS1.tag}`;
 
     pickTagRturnsNull = true;
-    expect(() => { loader.call({loaderIndex: 1, query: OPTS1}, 'content'); }).to.throw(ERR_MSG);
-    expect(() => { loader.call({loaderIndex: 1, query: OPTS2}, 'content'); }).to.throw(ERR_MSG);
-    expect(loader.call({loaderIndex: 1, query: OPTS3}, 'content')).to.be.null;
+    expect(() => { loader.call({loaderIndex: 1, query: OPTS1}, CONTENTS); }).to.throw(ERR_MSG);
+    expect(() => { loader.call({loaderIndex: 1, query: OPTS2}, CONTENTS); }).to.throw(ERR_MSG);
+    expect(loader.call({loaderIndex: 1, query: OPTS3}, CONTENTS)).to.be.null;
   });
 
   it('should return a null if pickTag returned a null with allowErrors', () => {
     const OPTS_PICKTAG = {pickTag: {allowErrors: true}, tag: 'TAG1', toCode: true},
-      RES_PICKTAG = 'content<pickTag>',
+      RES_PICKTAG = `${CONTENTS}<pickTag>`,
       RES_PICKTAG_CNV = `module.exports = "${RES_PICKTAG}";`;
 
     pickTagRturnsNull = false;
     resetAll();
-    expect(loader.call({loaderIndex: 1, query: OPTS_PICKTAG}, 'content')).to.equal(RES_PICKTAG);
-    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, 'content')).to.be.true;
+    expect(loader.call({loaderIndex: 1, query: OPTS_PICKTAG}, CONTENTS)).to.equal(RES_PICKTAG);
+    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, CONTENTS)).to.be.true;
     // Converted (loaderIndex: 0)
     resetAll();
-    expect(loader.call({loaderIndex: 0, query: OPTS_PICKTAG}, 'content')).to.equal(RES_PICKTAG_CNV);
-    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, 'content')).to.be.true;
+    expect(loader.call({loaderIndex: 0, query: OPTS_PICKTAG}, CONTENTS)).to.equal(RES_PICKTAG_CNV);
+    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, CONTENTS)).to.be.true;
 
     // Returns null
     pickTagRturnsNull = true;
     resetAll();
-    expect(loader.call({loaderIndex: 1, query: OPTS_PICKTAG}, 'content')).to.be.null;
-    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, 'content')).to.be.true;
+    expect(loader.call({loaderIndex: 1, query: OPTS_PICKTAG}, CONTENTS)).to.be.null;
+    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, CONTENTS)).to.be.true;
     // Converted (loaderIndex: 0)
     resetAll();
-    expect(loader.call({loaderIndex: 0, query: OPTS_PICKTAG}, 'content')).to.equal(RES_NULL_CNV);
-    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, 'content')).to.be.true;
+    expect(loader.call({loaderIndex: 0, query: OPTS_PICKTAG}, CONTENTS)).to.equal(RES_NULL_CNV);
+    expect(preProc.pickTag.calledOnceWithExactly(OPTS_PICKTAG.tag, CONTENTS)).to.be.true;
   });
 
   it('should not call other methods when pickTag returned a null', () => {
@@ -457,36 +462,36 @@ describe('passed/returned value', () => {
 
     pickTagRturnsNull = false;
     resetAll();
-    expect(loader.call({loaderIndex: 1, query: OPTS_ALL}, 'content')).to.equal(RES_ALL);
-    expect(preProc.pickTag.calledOnceWithExactly(OPTS_ALL.tag, 'content')).to.be.true;
+    expect(loader.call({loaderIndex: 1, query: OPTS_ALL}, CONTENTS)).to.equal(RES_ALL);
+    expect(preProc.pickTag.calledOnceWithExactly(OPTS_ALL.tag, CONTENTS)).to.be.true;
     expect(preProc.replaceTag
-      .calledOnceWithExactly(OPTS_ALL.tag, void 0, 'content<pickTag>', null, void 0))
+      .calledOnceWithExactly(OPTS_ALL.tag, void 0, `${CONTENTS}<pickTag>`, null, void 0))
       .to.be.true;
     expect(preProc.removeTag
-      .calledOnceWithExactly(OPTS_ALL.tag, 'content<pickTag><replaceTag>', null, void 0))
+      .calledOnceWithExactly(OPTS_ALL.tag, `${CONTENTS}<pickTag><replaceTag>`, null, void 0))
       .to.be.true;
     // Converted (loaderIndex: 0)
     resetAll();
-    expect(loader.call({loaderIndex: 0, query: OPTS_ALL}, 'content')).to.equal(RES_ALL_CNV);
-    expect(preProc.pickTag.calledOnceWithExactly(OPTS_ALL.tag, 'content')).to.be.true;
+    expect(loader.call({loaderIndex: 0, query: OPTS_ALL}, CONTENTS)).to.equal(RES_ALL_CNV);
+    expect(preProc.pickTag.calledOnceWithExactly(OPTS_ALL.tag, CONTENTS)).to.be.true;
     expect(preProc.replaceTag
-      .calledOnceWithExactly(OPTS_ALL.tag, void 0, 'content<pickTag>', null, void 0))
+      .calledOnceWithExactly(OPTS_ALL.tag, void 0, `${CONTENTS}<pickTag>`, null, void 0))
       .to.be.true;
     expect(preProc.removeTag
-      .calledOnceWithExactly(OPTS_ALL.tag, 'content<pickTag><replaceTag>', null, void 0))
+      .calledOnceWithExactly(OPTS_ALL.tag, `${CONTENTS}<pickTag><replaceTag>`, null, void 0))
       .to.be.true;
 
     // Returns null
     pickTagRturnsNull = true;
     resetAll();
-    expect(loader.call({loaderIndex: 1, query: OPTS_ALL}, 'content')).to.be.null;
-    expect(preProc.pickTag.calledOnceWithExactly(OPTS_ALL.tag, 'content')).to.be.true;
+    expect(loader.call({loaderIndex: 1, query: OPTS_ALL}, CONTENTS)).to.be.null;
+    expect(preProc.pickTag.calledOnceWithExactly(OPTS_ALL.tag, CONTENTS)).to.be.true;
     expect(preProc.replaceTag.notCalled).to.be.true;
     expect(preProc.removeTag.notCalled).to.be.true;
     // Converted (loaderIndex: 0)
     resetAll();
-    expect(loader.call({loaderIndex: 0, query: OPTS_ALL}, 'content')).to.equal(RES_NULL_CNV);
-    expect(preProc.pickTag.calledOnceWithExactly(OPTS_ALL.tag, 'content')).to.be.true;
+    expect(loader.call({loaderIndex: 0, query: OPTS_ALL}, CONTENTS)).to.equal(RES_NULL_CNV);
+    expect(preProc.pickTag.calledOnceWithExactly(OPTS_ALL.tag, CONTENTS)).to.be.true;
     expect(preProc.replaceTag.notCalled).to.be.true;
     expect(preProc.removeTag.notCalled).to.be.true;
   });
