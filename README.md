@@ -1,6 +1,6 @@
 # pre-proc-loader
 
-[![npm](https://img.shields.io/npm/v/pre-proc-loader.svg)](https://www.npmjs.com/package/pre-proc-loader) [![GitHub issues](https://img.shields.io/github/issues/anseki/pre-proc-loader.svg)](https://github.com/anseki/pre-proc-loader/issues) [![David](https://img.shields.io/david/anseki/pre-proc-loader.svg)](package.json) [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE-MIT)
+[![npm](https://img.shields.io/npm/v/pre-proc-loader.svg)](https://www.npmjs.com/package/pre-proc-loader) [![GitHub issues](https://img.shields.io/github/issues/anseki/pre-proc-loader.svg)](https://github.com/anseki/pre-proc-loader/issues) [![David](https://img.shields.io/david/anseki/pre-proc-loader.svg)](package.json) [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 [preProc](https://github.com/anseki/pre-proc) loader module for [webpack](https://webpack.js.org/).
 
